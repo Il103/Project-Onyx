@@ -1,0 +1,204 @@
+name: 💎 PROJECT ONYX: ULTIMATE KSU BUILDER
+on:
+  workflow_dispatch:
+    inputs:
+      KERNEL_SOURCE:
+        description: 'Kernel Source URL'
+        required: true
+        default: 'https://github.com/LineageOS/android_kernel_samsung_sm6115'
+      KERNEL_BRANCH:
+        description: 'Branch Name'
+        required: true
+        default: 'lineage-18.1'
+      DEFCONFIG_NAME:
+        description: 'Defconfig File'
+        required: true
+        default: 'gta4l_eur_open_defconfig'
+
+jobs:
+  build:
+    runs-on: ubuntu-20.04
+    steps:
+    - name: Checkout Repository
+      uses: actions/checkout@v2
+
+    - name: 🛠️ Preparing High-End Environment
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y bc bison build-essential ccache curl flex g++-multilib gcc-multilib git gnupg gperf imagemagick lib32ncurses5-dev lib32readline-dev lib32z1-dev liblz4-tool libncurses5 libncurses5-dev libsdl1.2-dev libssl-dev libxml2 libxml2-utils lzop pngcrush rsync schedtool squashfs-tools xsltproc zip zlib1g-dev python2
+
+    - name: 📥 Cloning Kernel Source
+      run: |
+        git clone --depth=1 ${{ inputs.KERNEL_SOURCE }} -b ${{ inputs.KERNEL_BRANCH }} android_kernel
+
+    - name: ⚡ Setting up Proton Clang (The Fastest)
+      run: |
+        mkdir -p toolchains
+        cd toolchains
+        git clone --depth=1 https://github.com/kdrag0n/proton-clang proton-clang
+        export PATH=$(pwd)/proton-clang/bin:$PATH
+
+    - name: 💉 Injecting KSU & Ultimate Features
+      run: |
+        cd android_kernel
+        CONFIG_PATH=arch/arm64/configs/${{ inputs.DEFCONFIG_NAME }}
+        
+        echo ">>> INJECTING PROJECT ONYX FEATURES..."
+
+        # 1. KernelSU (Root Hidden in Kernel) 🛡️
+        # This script patches the kernel source automatically for KSU
+        curl -LSs "https://raw.githubusercontent.com/tiann/KernelSU/main/kernel/setup.sh" | bash -
+        echo "CONFIG_KSU=y" >> $CONFIG_PATH
+        
+        # 2. KCAL Color Control (Screen Colors) 🎨
+        echo "CONFIG_DRM_KCAL=y" >> $CONFIG_PATH
+
+        # 3. BBR TCP Congestion (Faster Internet) 🚀
+        echo "CONFIG_TCP_CONG_BBR=y" >> $CONFIG_PATH
+        echo "CONFIG_DEFAULT_TCP_CONG=\"bbr\"" >> $CONFIG_PATH
+
+        # 4. Boeffla Wakelock Blocker (Battery Saver) 🔋
+        echo "CONFIG_BOEFFLA_WL_BLOCKER=y" >> $CONFIG_PATH
+
+        # 5. USB Fast Charge (Force High Current) ⚡
+        echo "CONFIG_USB_FAST_CHARGE=y" >> $CONFIG_PATH
+
+        # 6. Advanced ZRAM (LZ4)
+        echo "CONFIG_ZRAM=y" >> $CONFIG_PATH
+        echo "CONFIG_LZ4_COMPRESS=y" >> $CONFIG_PATH
+
+        # 7. WireGuard (Native VPN)
+        echo "CONFIG_WIREGUARD=y" >> $CONFIG_PATH
+        
+        # 8. Security & Integrity Bypass
+        # Fake Locked Bootloader
+        sed -i 's/androidboot.flash.locked=0/androidboot.flash.locked=1/g' $CONFIG_PATH
+        # Permissive CMDLINE
+        sed -i 's/CONFIG_CMDLINE=""/CONFIG_CMDLINE="androidboot.selinux=permissive"/g' $CONFIG_PATH
+        echo "CONFIG_CMDLINE_EXTEND=y" >> $CONFIG_PATH
+        # Kill Samsung Knox
+        sed -i 's/CONFIG_KNOX_KAP=y/CONFIG_KNOX_KAP=n/g' $CONFIG_PATH
+        sed -i 's/CONFIG_TIMA=y/CONFIG_TIMA=n/g' $CONFIG_PATH
+        sed -i 's/CONFIG_SEC_RESTRICT_SETUID=y/CONFIG_SEC_RESTRICT_SETUID=n/g' $CONFIG_PATH
+
+    - name: 🍳 Compiling The Beast
+      run: |
+        cd android_kernel
+        export PATH=$GITHUB_WORKSPACE/toolchains/proton-clang/bin:$PATH
+        export ARCH=arm64
+        export SUBARCH=arm64
+        export CC=clang
+        
+        make O=out ${{ inputs.DEFCONFIG_NAME }}
+        
+        make -j$(nproc --all) O=out \
+                      CC=clang \
+                      CROSS_COMPILE=aarch64-linux-gnu- \
+                      CROSS_COMPILE_ARM32=arm-linux-gnueabi- \
+                      CLANG_TRIPLE=aarch64-linux-gnu- \
+                      Image.gz dtbo.img
+
+    - name: 💎 Creating The Intelligent Installer
+      run: |
+        git clone https://github.com/osm0sis/AnyKernel3
+        cd AnyKernel3
+        
+        cp ../android_kernel/out/arch/arm64/boot/Image.gz .
+        cp ../android_kernel/out/arch/arm64/boot/dtbo.img .
+
+        # ------------------------------------------------
+        # 1. OPTIMIZATION SCRIPT
+        # ------------------------------------------------
+        cat << "EOF" > onyx_engine.sh
+        #!/system/bin/sh
+        # Project Onyx Engine
+        
+        # Enable BBR for Speed
+        echo bbr > /proc/sys/net/ipv4/tcp_congestion_control
+        
+        # ZRAM Optimization
+        swapoff /dev/block/zram0 2>/dev/null
+        echo lz4 > /sys/block/zram0/comp_algorithm
+        mkswap /dev/block/zram0
+        swapon /dev/block/zram0
+        
+        # GPU Boost
+        echo 1 > /sys/class/kgsl/kgsl-3d0/devfreq/adrenoboost
+        EOF
+
+        # ------------------------------------------------
+        # 2. THE ULTIMATE UI (Clean & Smart)
+        # ------------------------------------------------
+        cat << "EOF" > anykernel.sh
+        # PROJECT ONYX INSTALLER
+        # Edition: KSU ULTIMATE
+
+        properties() { '
+        kernel.string=Onyx Kernel (KSU)
+        do.devicecheck=0
+        do.modules=0
+        do.systemless=1
+        do.cleanup=1
+        do.cleanuponabort=0
+        device.name1=gta4l
+        device.name2=SM-T505
+        '; }
+
+        block=/dev/block/bootdevice/by-name/boot
+        is_slot_device=0
+        ramdisk_compression=auto
+
+        . tools/ak3-core.sh
+
+        # --- UI START ---
+        ui_print " "
+        ui_print " █▀█ █▀▄▀█ █▄█ ▀▄▀"
+        ui_print " █▄█ █ ▀ █  █  █ █"
+        ui_print " "
+        ui_print "  >> PROJECT ONYX: ULTIMATE"
+        ui_print "  >> KernelSU Integrated"
+        ui_print " "
+        ui_print " ----------------------------------"
+        sleep 1
+
+        # --- SMART CHECK ---
+        ui_print " [*] Verifying System Integrity..."
+        mount /system
+        mount /system_root
+        if [ -f /system/build.prop ] || [ -f /system_root/system/build.prop ] || [ -f /system/system/build.prop ]; then
+           ui_print "     >> Android OS Detected."
+        else
+           ui_print " [!] WARNING: No OS detected. Flash ROM first!"
+        fi
+
+        # --- INSTALLATION ---
+        ui_print " "
+        ui_print " [1] Installing Kernel Image..."
+        dump_boot
+        
+        ui_print " [2] Injecting Onyx Engine..."
+        cp -f /tmp/anykernel/onyx_engine.sh /sbin/onyx_engine.sh
+        chmod 755 /sbin/onyx_engine.sh
+        insert_line init.rc "import /sbin/onyx_engine.sh" after "import /init.usb.rc" "service onyx_engine /sbin/onyx_engine.sh\n    user root\n    group root\n    disabled\n    oneshot\n\non property:sys.boot_completed=1\n    start onyx_engine"
+
+        ui_print " [3] Activating KernelSU Root..."
+        ui_print "     >> Root Access: HIDDEN & READY"
+
+        ui_print " [4] Finalizing..."
+        write_boot
+        
+        ui_print " "
+        ui_print " ----------------------------------"
+        ui_print "    INSTALLATION SUCCESSFUL."
+        ui_print "    Install KSU App to manage root."
+        ui_print " ----------------------------------"
+        ui_print " "
+        EOF
+
+        zip -r9 Onyx-KSU-Ultimate.zip * -x .git README.md *placeholder
+
+    - name: 📦 Upload Artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: Onyx-KSU-T505
+        path: AnyKernel3/Onyx-KSU-Ultimate.zip
