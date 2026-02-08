@@ -5,7 +5,7 @@ on:
       KERNEL_SOURCE:
         description: 'Kernel Source URL'
         required: true
-        default: '[https://github.com/LineageOS/android_kernel_samsung_sm6115](https://github.com/LineageOS/android_kernel_samsung_sm6115)'
+        default: 'https://github.com/LineageOS/android_kernel_samsung_sm6115'
       KERNEL_BRANCH:
         description: 'Branch Name'
         required: true
@@ -22,7 +22,7 @@ jobs:
     - name: Checkout Repository
       uses: actions/checkout@v2
 
-    - name: Prepare Environment
+    - name: Prepare Build Environment
       run: |
         sudo apt-get update
         sudo apt-get install -y bc bison build-essential ccache curl flex g++-multilib gcc-multilib git gnupg gperf imagemagick lib32ncurses5-dev lib32readline-dev lib32z1-dev liblz4-tool libncurses5 libncurses5-dev libsdl1.2-dev libssl-dev libxml2 libxml2-utils lzop pngcrush rsync schedtool squashfs-tools xsltproc zip zlib1g-dev python2
@@ -31,23 +31,23 @@ jobs:
       run: |
         git clone --depth=1 ${{ inputs.KERNEL_SOURCE }} -b ${{ inputs.KERNEL_BRANCH }} android_kernel
 
-    - name: Setup Proton Clang
+    - name: Setup Proton Clang Toolchain
       run: |
         mkdir -p toolchains
         cd toolchains
-        git clone --depth=1 [https://github.com/kdrag0n/proton-clang](https://github.com/kdrag0n/proton-clang) proton-clang
+        git clone --depth=1 https://github.com/kdrag0n/proton-clang proton-clang
         export PATH=$(pwd)/proton-clang/bin:$PATH
 
-    - name: Inject KSU and Features
+    - name: Inject Onyx Features and KSU
       run: |
         cd android_kernel
         CONFIG_PATH=arch/arm64/configs/${{ inputs.DEFCONFIG_NAME }}
         
-        # Install KernelSU
-        curl -LSs "[https://raw.githubusercontent.com/tiann/KernelSU/main/kernel/setup.sh](https://raw.githubusercontent.com/tiann/KernelSU/main/kernel/setup.sh)" | bash -
+        # KernelSU Implementation
+        curl -LSs "https://raw.githubusercontent.com/tiann/KernelSU/main/kernel/setup.sh" | bash -
         echo "CONFIG_KSU=y" >> $CONFIG_PATH
         
-        # Performance Features
+        # Advanced Performance Tweaks
         echo "CONFIG_TCP_CONG_BBR=y" >> $CONFIG_PATH
         echo "CONFIG_DEFAULT_TCP_CONG=\"bbr\"" >> $CONFIG_PATH
         echo "CONFIG_USB_FAST_CHARGE=y" >> $CONFIG_PATH
@@ -55,14 +55,14 @@ jobs:
         echo "CONFIG_LZ4_COMPRESS=y" >> $CONFIG_PATH
         echo "CONFIG_WIREGUARD=y" >> $CONFIG_PATH
         
-        # Security Bypass
+        # System Integrity and Security Bypass
         sed -i 's/androidboot.flash.locked=0/androidboot.flash.locked=1/g' $CONFIG_PATH
         sed -i 's/CONFIG_CMDLINE=""/CONFIG_CMDLINE="androidboot.selinux=permissive"/g' $CONFIG_PATH
         echo "CONFIG_CMDLINE_EXTEND=y" >> $CONFIG_PATH
         sed -i 's/CONFIG_KNOX_KAP=y/CONFIG_KNOX_KAP=n/g' $CONFIG_PATH
         sed -i 's/CONFIG_TIMA=y/CONFIG_TIMA=n/g' $CONFIG_PATH
 
-    - name: Compile Kernel
+    - name: Compile Onyx Kernel
       run: |
         cd android_kernel
         export PATH=$GITHUB_WORKSPACE/toolchains/proton-clang/bin:$PATH
@@ -79,14 +79,14 @@ jobs:
                       CLANG_TRIPLE=aarch64-linux-gnu- \
                       Image.gz dtbo.img
 
-    - name: Create Installer
+    - name: Package Smart Installer
       run: |
-        git clone [https://github.com/osm0sis/AnyKernel3](https://github.com/osm0sis/AnyKernel3)
+        git clone https://github.com/osm0sis/AnyKernel3
         cd AnyKernel3
         cp ../android_kernel/out/arch/arm64/boot/Image.gz .
         cp ../android_kernel/out/arch/arm64/boot/dtbo.img .
 
-        # Create Optimization Script
+        # Create Optimization Engine
         cat << "EOF" > onyx_engine.sh
         #!/system/bin/sh
         echo bbr > /proc/sys/net/ipv4/tcp_congestion_control
@@ -97,10 +97,10 @@ jobs:
         echo 1 > /sys/class/kgsl/kgsl-3d0/devfreq/adrenoboost
         EOF
 
-        # Create Installer Script
+        # Create Clean UI Installer Script
         cat << "EOF" > anykernel.sh
         properties() { '
-        kernel.string=Onyx Kernel (KSU)
+        kernel.string=Project Onyx Kernel
         do.devicecheck=0
         do.modules=0
         do.systemless=1
@@ -114,35 +114,47 @@ jobs:
         ramdisk_compression=auto
         . tools/ak3-core.sh
         ui_print " "
-        ui_print " >> PROJECT ONYX: ULTIMATE"
-        ui_print " >> KernelSU Integrated"
+        ui_print "  ____________________________________  "
+        ui_print " |                                    | "
+        ui_print " |      P R O J E C T   O N Y X       | "
+        ui_print " |____________________________________| "
         ui_print " "
-        ui_print " [*] Verifying System Integrity..."
+        ui_print "  MODEL    : SM-T505 (gta4l)"
+        ui_print "  VERSION  : v1.0 Stable"
+        ui_print "  ROOT     : KernelSU Integrated"
+        ui_print "  CREDITS  : Joe (El Osta)"
+        ui_print " "
+        ui_print "  [ SYSTEM SCAN ]"
         mount /system
         mount /system_root
         if [ -f /system/build.prop ] || [ -f /system_root/system/build.prop ]; then
-           ui_print "     >> Android OS Detected."
+           ui_print "  >> OS STATUS: VALID"
         else
-           ui_print " [!] WARNING: No OS detected."
+           ui_print "  >> OS STATUS: NOT FOUND (ABORTING)"
+           exit 1
         fi
         ui_print " "
-        ui_print " [1] Installing Kernel Image..."
+        ui_print "  [ INSTALLATION ]"
+        ui_print "  - Flashing Onyx Core..."
         dump_boot
-        ui_print " [2] Injecting Onyx Engine..."
+        ui_print "  - Injecting Optimization Suite..."
         cp -f /tmp/anykernel/onyx_engine.sh /sbin/onyx_engine.sh
         chmod 755 /sbin/onyx_engine.sh
-        insert_line init.rc "import /sbin/onyx_engine.sh" after "import /init.usb.rc" "service onyx_engine /sbin/onyx_engine.sh\n    user root\n    group root\n    disabled\n    oneshot\n\non property:sys.boot_completed=1\n    start onyx_engine"
-        ui_print " [3] Finalizing..."
+        insert_line init.rc "import /sbin/onyx_core.sh" after "import /init.usb.rc" "service onyx_core /sbin/onyx_core.sh\n    user root\n    group root\n    disabled\n    oneshot\n\non property:sys.boot_completed=1\n    start onyx_core"
+        ui_print "  - Writing Boot Image..."
         write_boot
         ui_print " "
-        ui_print " INSTALLATION SUCCESSFUL."
+        ui_print "  ____________________________________  "
+        ui_print " |                                    | "
+        ui_print " |      INSTALLATION SUCCESSFUL       | "
+        ui_print " |____________________________________| "
         ui_print " "
         EOF
 
-        zip -r9 Onyx-KSU-Final.zip * -x .git README.md *placeholder
+        zip -r9 Onyx-KSU-Ultimate.zip * -x .git README.md *placeholder
 
-    - name: Upload Artifact
+    - name: Upload Final Build
       uses: actions/upload-artifact@v3
       with:
         name: Onyx-KSU-T505
-        path: AnyKernel3/Onyx-KSU-Final.zip
+        path: AnyKernel3/Onyx-KSU-Ultimate.zip
