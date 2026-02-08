@@ -1,57 +1,49 @@
-# 💎 Project Onyx Kernel
+# 💎 Project Onyx: Ultimate KSU Edition
 
-Welcome to **Project Onyx**, the definitive custom kernel for the **Samsung Galaxy Tab A7 (SM-T505 / gta4l)**.
+**Project Onyx** represents the pinnacle of kernel development for the **Samsung Galaxy Tab A7 (SM-T505)**. This is not just a kernel; it's a complete system upgrade.
 
-Project Onyx is designed to bridge the gap between stability and raw performance. It replaces the stock Samsung kernel with a highly optimized, intelligent, and unlocked core that unleashes the full potential of your device.
-
----
-
-### 🌟 Key Features
-
-#### 🧠 Intelligent Installation System
-* **Smart Integrity Scan:** The installer automatically scans your device partition layout before flashing.
-* **Safety First:** Prevents flashing on empty partitions to avoid bootloops.
-* **Clean UI:** A professional, sleek installation interface in TWRP.
-
-#### 🚀 Maximum Performance
-* **Adreno Boost:** Unlocked GPU frequencies for superior gaming performance.
-* **Proton Clang:** Compiled with the advanced Proton Clang toolchain for maximum efficiency.
-* **Westwood TCP:** Optimized network congestion control for lower latency in online games.
-
-#### 💾 Advanced Memory Management
-* **ZRAM Optimization:** Enabled with **LZ4** compression algorithms.
-* **Multitasking:** Improved background app retention (keeps apps open longer).
-* **IO Schedulers:** Tuned for faster read/write speeds.
-
-#### 🔓 Unlocked Potential
-* **Permissive Mode:** Fully enabled for maximum compatibility with GSI and Custom ROMs.
-* **Samsung Locks Removed:** Knox, RKP, and Defex security layers are disabled.
-* **Network Unlocked:** Native **WireGuard** VPN support and **TTL Target** fix for hotspot restrictions.
+Featuring **Native KernelSU**, this edition provides root access directly within the kernel space, offering superior stealth capabilities for banking apps and passing integrity checks without complex modules.
 
 ---
 
-### 📥 Downloads
+### 🌟 Ultimate Features
 
-Go to the **[Releases]** page to download the latest stable version.
+#### 🛡️ KernelSU (KSU) Integration
+* **Native Root:** Root access is embedded in the kernel. No modifications to the system partition.
+* **Invisible Power:** Grant root permissions while remaining completely hidden from banking apps and games.
+* **Module Support:** Supports KSU modules for systemless modifications.
+
+#### 🎨 Visual & Display
+* **KCAL Control:** Full control over screen color saturation, contrast, and hue. Make your display pop.
+* **Adreno Boost:** Unlocked GPU frequencies for a smoother visual experience.
+
+#### 🚀 Network & Performance
+* **BBR TCP Congestion:** Uses Google's BBR algorithm for significantly faster internet speeds and lower latency compared to Westwood.
+* **WireGuard VPN:** Native kernel support for the fastest VPN protocol available.
+* **Proton Clang:** Compiled with the most advanced toolchain for ARM64.
+
+#### 🔋 Battery & Efficiency
+* **Boeffla Wakelock Blocker:** Intelligently blocks unnecessary system wakeups to save deep-sleep battery life.
+* **USB Fast Charge:** Unlocks higher current intake for faster charging speeds (hardware dependent).
+* **ZRAM LZ4:** Optimized memory compression for snappy multitasking.
 
 ---
 
-### ⚡ Installation Instructions
+### 🛠️ Installation Guide
 
-1.  Download the `Project-Onyx-Installer.zip` file.
-2.  Reboot your device into **TWRP Recovery**.
-3.  (Optional but Recommended) Backup your `Boot` partition.
-4.  Select **Install** and choose the zip file.
-5.  Watch the **Intelligent Installer** do its magic.
-6.  Reboot and enjoy the speed!
+1.  Download `Onyx-KSU-Ultimate.zip` from Releases.
+2.  Reboot into **TWRP**.
+3.  Flash the zip file.
+4.  Reboot your device.
+5.  **Install the KernelSU Manager app** (apk) to manage root permissions.
 
 ---
 
-### 📱 Device Support
-* **Model:** Samsung Galaxy Tab A7 10.4 (2020)
-* **Code:** SM-T505 (gta4l)
+### 📱 Specs
+* **Device:** Samsung Galaxy Tab A7 (SM-T505)
 * **Chipset:** Snapdragon 662
+* **Status:** Stable / High Performance
+* **Root:** KernelSU (Integrated)
 
 ---
-**Project Onyx - Intelligence meets Performance.**
-*Maintainer: Joe (El Osta)*
+**Project Onyx - The Future of Root.**
